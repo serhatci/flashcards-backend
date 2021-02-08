@@ -1,29 +1,24 @@
-from flask import jsonify, Blueprint
+from flask import jsonify, Blueprint, request
 from backend.db_connection import Database as db
-import re
+from flask_cors import CORS
+import os
 
 
 api = Blueprint('api', __name__, url_prefix='/api')
+CORS(api)
 
 
+# Tests Mongo DB connection
 @api.route('/test')
 def test():
-    return 'Working correctly'
+    return f'''<pre>Flask Working correctly</pre>
+<pre>{db.test_connection()}</pre>'''
 
 
-# Provides flash cards titles for home page
-@api.route('<string:username>')
-def get_titles(username):
-    return db.get_titles(username)
-
-
-# Provides flashcards for user specific titles
-@api.route('/<string:username>/<string:title>')
-def get_words(username, title):
-    return db.get_words(username, title)
-
-
-# converts titles to camel case for db insert
-def camel_case(word):
-    snake = ''.join(x.capitalize() for x in word.split(' '))
-    return (snake[0].lower() + snake[1:])
+# Provides all data belong to the user including guest
+@api.route('/', methods=['POST'])
+def user_flashcards():
+    uid = request.json['uid']
+    if uid == "guest":
+        uid = os.environ.get('MASTER')
+    return db.get_all(uid)
