@@ -16,19 +16,43 @@ class Database():
                                      wtimeout=2500)
 
     @staticmethod
-    def get_titles(user):
-        conn = Database.mongo.flashcards.users
-        words_list = list(conn.find(
-            {'userName': user}, {'_id': 0, 'topics': 1}))[0]['topics']
-        return jsonify(words_list)
+    def test_connection():
+        """Tests Mongo DB connection"""
+        return Database.mongo.server_info()
 
     @staticmethod
-    def get_words(user, title):
+    def get_all(uid):
+        user_topics = Database.get_topics(uid)
+        user_flashcards = {}
+        for topic in user_topics:
+            title = Database.camel_case(topic['title'])
+            words = Database.get_words(title, topic['flashcards'])
+            user_flashcards[title] = words
+        all = {"titles":
+               [
+                   [i["title"],
+                    Database.camel_case(i["title"])]
+                   for i in user_topics
+               ]}
+        all = {**all, **user_flashcards}
+        return jsonify(all)
+
+    @staticmethod
+    def get_topics(uid):
         conn = Database.mongo.flashcards.users
-        words_list = list(conn.find(
-            {'userName': user}, {'_id': 0, title: 1}))[0][title]
-        conn = Database.mongo.flashcards[title]
+        topics = list(conn.find(
+            {'id': uid}, {'_id': 0, 'topics': 1}))[0]['topics']
+        return topics
+
+    @staticmethod
+    def get_words(collection, words_id):
+        conn = Database.mongo.flashcards[collection]
         words = list(conn.find(
-            {'id': {'$in': words_list}}, {'_id': 0}))
-        print(words)
-        return jsonify(words)
+            {'_id': {'$in': words_id}}, {'_id': 0}))
+        return words
+
+    # converts titels to camel case as collection name
+    @staticmethod
+    def camel_case(word):
+        snake = ''.join(x.capitalize() for x in word.split(' '))
+        return (snake[0].lower() + snake[1:])
