@@ -21,6 +21,6 @@ def create_app():
 
     app.register_blueprint(api)
 
-    Database(app)  # create database connection
+    Database(app)  # creates database connection
 
     return app
