@@ -1,8 +1,7 @@
 from flask import Flask, jsonify, request
-from backend.db_connection import Database
-
+from backend.db_methods import Database
 from backend.settings import DevelopmentConfig, ProductionConfig, TestingConfig
-from backend.api.routes import api
+from backend.routes import api
 
 
 def create_app():
