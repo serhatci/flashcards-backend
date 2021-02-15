@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from flask import jsonify, abort, make_response
+from flask import jsonify, abort, make_response, Response
 from .db_functions import combine, camel_case
 
 
@@ -21,18 +21,19 @@ class Database():
     @staticmethod
     def get_all(uid):
         """provives all data belong to specific user"""
-        user_topics = Database.get_topics(uid)
+        user_info = Database.get_topics_and_username(uid)
+        user_topics = user_info['topics']
         user_flashcards = Database.get_flashcards(user_topics)
-        all = combine(user_topics, user_flashcards)
+        all = combine(user_info, user_flashcards)
         return jsonify(all), 200
 
     @staticmethod
-    def get_topics(uid):
-        """provides all topics that belong to user"""
+    def get_topics_and_username(uid):
+        """provides all topics and username that belong to user"""
         try:
             conn = Database.mongo.flashcards.users
             topics = list(conn.find(
-                {'id': uid}, {'_id': 0, 'topics': 1}))[0]['topics']
+                {'id': uid}, {'_id': 0, 'topics': 1, 'username': 1}))[0]
             return topics
         except:
             msg = "401: User was not found in DB!"
@@ -40,7 +41,7 @@ class Database():
 
     @staticmethod
     def get_flashcards(user_topics):
-        """provides all flashcards from DB that belongs to user"""
+        """provides all flashcards that belongs to user"""
         try:
             flashcards = {}
             for topic in user_topics:
@@ -84,6 +85,7 @@ class Database():
             user = {**user, **topics}
             conn = Database.mongo.flashcards.users
             conn.insert(user)
+            return Response(status=200)
         except:
             msg = "Resource not found"
             abort(make_response(jsonify(message=msg), 404))
