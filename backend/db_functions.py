@@ -1,15 +1,16 @@
 """Provides functions for Database methods"""
 
 
-def combine(user_topics, user_flashcards):
-    "combines topics and flashcards to a single dict"
+def combine(user_info, user_flashcards):
+    "combines username, user topics and flashcards to a single dict"
+    username = {"username": user_info['username']}
     titles = {"titles":
               [
                   {"str": i["title"],
                    "camelCase":camel_case(i["title"])}
-                  for i in user_topics
+                  for i in user_info['topics']
               ]}
-    return {**titles, **user_flashcards}
+    return {**username, **titles, **user_flashcards}
 
 
 def camel_case(word):
