@@ -30,3 +30,10 @@ def add_user():
     user_data = request.json
     master_user = os.environ.get('MASTER')
     return db.add_user(user_data, master_user)
+
+
+@api.route('/delete-user', methods=['POST'])
+def delete_user():
+    """Delete given user from the DB"""
+    user_data = request.json
+    return db.delete_user(user_data)
