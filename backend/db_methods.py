@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from flask import jsonify, abort, make_response, Response
 from .db_functions import combine, camel_case
+import os
 
 
 class Database():
@@ -36,7 +37,7 @@ class Database():
                 {'id': uid}, {'_id': 0, 'topics': 1, 'username': 1}))[0]
             return topics
         except:
-            msg = "401: User was not found in DB!"
+            msg = "User was not found in DB!"
             abort(make_response(jsonify(message=msg), 401))
 
     @staticmethod
@@ -50,7 +51,7 @@ class Database():
                 flashcards[title] = words
             return flashcards
         except:
-            msg = "404: Flashcards belong to provided user could not be found in DB!"
+            msg = "Flashcards belong to provided user could not be found in DB!"
             abort(make_response(jsonify(message=msg), 404))
 
     @staticmethod
@@ -74,12 +75,12 @@ class Database():
                 {'id': uid}, {'_id': 0, 'topics': 1}))[0]
             return topics
         except:
-            msg = "Master user' data could not be collected"
+            msg = "Master user's data could not be collected"
             abort(make_response(jsonify(message=msg), 404))
 
     @staticmethod
     def add_user(user, master_user):
-        """Insert new user to user collection """
+        """Insert new user to users collection"""
         try:
             topics = Database.get_master_topics(master_user)
             user = {**user, **topics}
@@ -88,4 +89,20 @@ class Database():
             return Response(status=200)
         except:
             msg = "Resource not found"
+            abort(make_response(jsonify(message=msg), 404))
+
+    @staticmethod
+    def delete_user(user):
+        """Delete given user from users collection"""
+
+        if user['id'] == os.environ.get('MASTER'):
+            msg = "Master user can not be deleted"
+            abort(make_response(jsonify(message=msg), 404))
+
+        try:
+            conn = Database.mongo.flashcards.users
+            ans = conn.delete_one(user)
+            return Response(status=200)
+        except:
+            msg = "User can not be deleted from DB"
             abort(make_response(jsonify(message=msg), 404))
