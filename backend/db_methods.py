@@ -34,7 +34,7 @@ class Database():
         try:
             conn = Database.mongo.flashcards.users
             topics = list(conn.find(
-                {'id': uid}, {'_id': 0, 'topics': 1, 'username': 1}))[0]
+                {'userID': uid}, {'_id': 0, 'topics': 1, 'username': 1}))[0]
             return topics
         except:
             msg = "User was not found in DB!"
@@ -43,30 +43,31 @@ class Database():
     @staticmethod
     def get_flashcards(user_topics):
         """provides all flashcards that belongs to user"""
-        try:
-            flashcards = {}
-            for topic in user_topics:
-                title = camel_case(topic['title'])
-                words = Database.get_words(title, topic['flashcards'])
-                flashcards[title] = words
-            return flashcards
-        except:
-            msg = "Flashcards belong to provided user could not be found in DB!"
-            abort(make_response(jsonify(message=msg), 404))
+        # tr
+        flashcards = {}
+        for topic in user_topics:
+            title = camel_case(topic['title'])
+            cards = Database.get_words(title, topic['flashcards'])
+            flashcards[title] = cards
+        return {"flashcards": flashcards}
+        # except:
+        #     msg = "Flashcards belong to provided user could not be found in DB!"
+        #     abort(make_response(jsonify(message=msg), 404))
 
     @staticmethod
-    def get_words(collection, words_id):
+    def get_words(title, card_indexes):
         """provides all words from specific collection"""
-        try:
-            conn = Database.mongo.flashcards[collection]
-            words = list(conn.find(
-                {'_id': {'$in': words_id}}, {'_id': 0}))
-            return words
-        except:
-            msg = f"{collection} could not be found in DB"
-            abort(make_response(jsonify(message=msg), 404))
+        # try:
+        conn = Database.mongo.flashcards.flashcards
+        all_cards = list(conn.find(
+            {'title': title}, {'_id': 0, 'title': 0}))[0]["cards"]
+        user_cards = [all_cards[i] for i in card_indexes]
+        return user_cards
+        # except:
+        #     msg = f"{title} could not be found in DB"
+        #     abort(make_response(jsonify(message=msg), 404))
 
-    @staticmethod
+    @ staticmethod
     def get_master_topics(uid):
         """provides all topics that belong to master user"""
         try:
@@ -78,7 +79,7 @@ class Database():
             msg = "Master user's data could not be collected"
             abort(make_response(jsonify(message=msg), 404))
 
-    @staticmethod
+    @ staticmethod
     def add_user(user, master_user):
         """Insert new user to users collection"""
         try:
@@ -91,7 +92,7 @@ class Database():
             msg = "Resource not found"
             abort(make_response(jsonify(message=msg), 404))
 
-    @staticmethod
+    @ staticmethod
     def delete_user(user):
         """Delete given user from users collection"""
 
