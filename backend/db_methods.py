@@ -43,29 +43,29 @@ class Database():
     @staticmethod
     def get_flashcards(user_topics):
         """provides all flashcards that belongs to user"""
-        # tr
-        flashcards = {}
-        for topic in user_topics:
-            title = camel_case(topic['title'])
-            cards = Database.get_words(title, topic['flashcards'])
-            flashcards[title] = cards
-        return {"flashcards": flashcards}
-        # except:
-        #     msg = "Flashcards belong to provided user could not be found in DB!"
-        #     abort(make_response(jsonify(message=msg), 404))
+        try:
+            flashcards = {}
+            for topic in user_topics:
+                title = camel_case(topic['title'])
+                cards = Database.get_words(title, topic['flashcards'])
+                flashcards[title] = cards
+            return {"flashcards": flashcards}
+        except:
+            msg = "Flashcards belong to provided user could not be found in DB!"
+            abort(make_response(jsonify(message=msg), 404))
 
     @staticmethod
     def get_words(title, card_indexes):
         """provides all words from specific collection"""
-        # try:
-        conn = Database.mongo.flashcards.flashcards
-        all_cards = list(conn.find(
-            {'title': title}, {'_id': 0, 'title': 0}))[0]["cards"]
-        user_cards = [all_cards[i] for i in card_indexes]
-        return user_cards
-        # except:
-        #     msg = f"{title} could not be found in DB"
-        #     abort(make_response(jsonify(message=msg), 404))
+        try:
+            conn = Database.mongo.flashcards.flashcards
+            all_cards = list(conn.find(
+                {'title': title}, {'_id': 0, 'title': 0}))[0]["cards"]
+            user_cards = [all_cards[i] for i in card_indexes]
+            return user_cards
+        except:
+            msg = f"{title} could not be found in DB"
+            abort(make_response(jsonify(message=msg), 404))
 
     @ staticmethod
     def get_master_topics(uid):
@@ -73,7 +73,7 @@ class Database():
         try:
             conn = Database.mongo.flashcards.users
             topics = list(conn.find(
-                {'id': uid}, {'_id': 0, 'topics': 1}))[0]
+                {'userID': uid}, {'_id': 0, 'topics': 1}))[0]
             return topics
         except:
             msg = "Master user's data could not be collected"
@@ -102,7 +102,7 @@ class Database():
 
         try:
             conn = Database.mongo.flashcards.users
-            ans = conn.delete_one(user)
+            conn.delete_one(user)
             return Response(status=200)
         except:
             msg = "User can not be deleted from DB"
