@@ -21,7 +21,7 @@ def test():
 
 
 @api.route('/', methods=['GET'])
-def get_user_flashcards():
+def get_flashcards():
     """Provides all data belong to the user including guest
     """
     try:
@@ -40,7 +40,7 @@ def update_user_flashcards_data():
     """
     try:
         new_data = request.json
-        if (new_data["topics"]):
+        if (new_data["topics"] or new_data["topics"] == []):
             return db.update_user_topics(new_data)
         return db.update_user_flashcards(new_data)
     except:
