@@ -16,12 +16,14 @@ class Database():
 
     @staticmethod
     def test_connection():
-        """Tests Mongo DB connection"""
+        """Tests Mongo DB connection
+        """
         return Database.mongo.server_info()
 
     @staticmethod
     def get_all(uid):
-        """provives all data belong to specific user"""
+        """provives all data belong to specific user
+        """
         user_info = Database.get_topics_and_username(uid)
         user_topics = user_info['topics']
         user_flashcards = Database.get_flashcards(user_topics)
@@ -30,7 +32,8 @@ class Database():
 
     @staticmethod
     def get_topics_and_username(uid):
-        """provides all topics and username that belong to user"""
+        """provides all topics and username that belong to user
+        """
         conn = Database.mongo.flashcards.users
         topics = list(conn.find(
             {'userID': uid}, {'_id': 0, 'topics': 1, 'username': 1}))[0]
@@ -38,7 +41,8 @@ class Database():
 
     @staticmethod
     def get_flashcards(user_topics):
-        """provides all flashcards that belongs to user"""
+        """provides all flashcards that belongs to user
+        """
         flashcards = {}
         for topic in user_topics:
             title = camel_case(topic['title'])
@@ -47,12 +51,13 @@ class Database():
         return {"flashcards": flashcards}
 
     @staticmethod
-    def get_words(title, card_indexes):
-        """provides all words from specific collection"""
+    def get_words(title, card_objectID_list):
+        """provides all words from specific collection
+        """
         try:
             conn = Database.mongo.flashcards.flashcards
             user_cards = list(conn.find(
-                {'title': title, 'cards.cardID': {'$in': card_indexes}},
+                {'title': title, 'cards.cardID': {'$in': card_objectID_list}},
                 {'_id': 0, 'title': 0,  'cards.cardID': 0}))[0]['cards']
             return user_cards
         except:
@@ -60,7 +65,8 @@ class Database():
 
     @ staticmethod
     def get_master_topics(uid):
-        """provides all topics that belong to master user"""
+        """provides all topics that belong to master user
+        """
         try:
             conn = Database.mongo.flashcards.users
             topics = list(conn.find(
@@ -71,51 +77,47 @@ class Database():
 
     @ staticmethod
     def add_user(user, master_user):
-        """Insert new user to users collection"""
-        try:
-            topics = Database.get_master_topics(master_user)
-            user = {**user, **topics}
-            conn = Database.mongo.flashcards.users
-            conn.insert(user)
-            return Response(status=200)
-        except:
-            msg = "Resource not found"
-            abort(make_response(jsonify(message=msg), 404))
+        """Insert new user to users collection
+        """
+        topics = Database.get_master_topics(master_user)
+        user = {**user, **topics}
+        conn = Database.mongo.flashcards.users
+        conn.insert(user)
+        return Response(status=200)
 
     @ staticmethod
     def delete_user(user):
-        """Delete given user from users collection"""
-
+        """Delete given user from users collection
+        """
         if user['id'] == os.environ.get('MASTER'):
             msg = "Master user can not be deleted"
             abort(make_response(jsonify(message=msg), 404))
 
-        try:
-            conn = Database.mongo.flashcards.users
-            conn.delete_one(user)
-            return Response(status=200)
-        except:
-            msg = "User can not be deleted from DB"
-            abort(make_response(jsonify(message=msg), 404))
+        conn = Database.mongo.flashcards.users
+        conn.delete_one(user)
+        return Response(status=200)
 
     @ staticmethod
     def update_user_topics(new_data):
-        """Update given user topics to new topics"""
-        try:
-            conn = Database.mongo.flashcards.users
-            conn.update({"userID": new_data.id}, {"topics": new_data.topics})
-            return Response(status=200)
-        except:
-            msg = "User data can not be updated"
-            abort(make_response(jsonify(message=msg), 404))
+        """Update given user topics to new topics
+        """
+        conn = Database.mongo.flashcards.users
+        user_data = Database.get_topics_and_username(new_data['id'])['topics']
+        remaining_topics = [
+            topic for topic in user_data if topic['title'] in new_data['topics']]
+        added_titles = list(set(new_data['topics']) -
+                            set([topic['title'] for topic in remaining_topics]))
+        new_topics = [{'title': new_topic, 'flashcards': []}
+                      for new_topic in added_titles]
+        updated_topics = new_topics + remaining_topics
+        conn.update({'userID': new_data['id']}, {
+                    '$set': {'topics': updated_topics}})
+        return Response(status=200)
 
     @ staticmethod
-    def update_flashcards_topics(new_data):
+    def update_user_flashcards(new_data):
         """Update given user topics to new topics"""
-        try:
-            conn = Database.mongo.flashcards.users
-            conn.update({"userID": new_data.id}, {"topics": new_data.topics})
-            return Response(status=200)
-        except:
-            msg = "User data can not be updated"
-            abort(make_response(jsonify(message=msg), 404))
+
+        conn = Database.mongo.flashcards.users
+        conn.update({"userID": new_data.id}, {"topics": new_data.topics})
+        return Response(status=200)
