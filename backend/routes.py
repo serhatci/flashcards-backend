@@ -24,14 +24,11 @@ def test():
 def get_all_user_data():
     '''Provides all data belong to the user including guest
     '''
-    try:
-        uid = request.headers.get('Authentication')
-        if uid == 'guest':
-            uid = os.environ.get('MASTER')
-        return db.get_all(uid)
-    except:
-        msg = 'Data could not be collected from DB!'
-        abort(make_response(jsonify(message=msg), 404))
+    uid = request.headers.get('Authentication')
+    # if user is guest, master user data will be sent
+    if uid == 'guest':
+        uid = os.environ.get('MASTER')
+    return db.get_all_user_data(uid)
 
 
 @api.route('/update-data', methods=['PUT'])
@@ -43,7 +40,7 @@ def update_user_flashcards_data():
         if (new_data['topics'] or new_data['topics'] == []):
             return db.update_user_topics(new_data)
         elif (new_data['cards'] or new_data['cards'] == []):
-            return db.update_flashcards(new_data['cards'], new_data['cards'])
+            return db.update_flashcards(new_data)
     except:
         msg = 'User data could not be updated!'
         abort(make_response(jsonify(message=msg), 404))
@@ -65,8 +62,11 @@ def add_user():
 def delete_user():
     '''Delete given user from the DB
     '''
+
     try:
         user_data = request.json
+        if user_data['userID'] == os.environ.get('MASTER'):
+            raise Exception("Master user can not be deleted")
         return db.delete_user(user_data)
     except:
         msg = 'User could not be deleted from DB!'
