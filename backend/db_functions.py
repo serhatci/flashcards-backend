@@ -1,17 +1,16 @@
 """Provides functions for Database methods"""
 
 
-def combine(user_info, user_flashcards):
-    """Combines username, user topics and flashcards to a single dict
+def organize_user_data(user_data):
+    """Organize user data suitable for front end request
     """
-    username = {"username": user_info['username']}
-    titles = {"titles":
-              [
-                  {"str": i["title"],
-                   "camelCase":camel_case(i["title"])}
-                  for i in user_info['topics']
-              ]}
-    return {**username, **titles, **user_flashcards}
+    titles = [{'str': item['title'], 'camelCase': camel_case(
+        item['title'])} for item in user_data['topics']]
+    flashcards = [{item['title']: [item['flashcards']]}
+                  for item in user_data['topics']]
+    return {'username': user_data['userName'],
+            'titles': titles,
+            'flashcards': flashcards}
 
 
 def camel_case(word):
