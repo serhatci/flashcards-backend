@@ -47,8 +47,10 @@ class Database():
             conn = Database.mongo.flashcards.users
             return list(conn.find(
                 {'userID': uid}, {'_id': 0, 'topics': 1, 'username': 1}))[0]
-        except Exception as err:
-            print(err)
+        except:
+            uid = os.environ.get('MASTER')
+            return list(conn.find(
+                {'userID': uid}, {'_id': 0, 'topics': 1, 'username': 1}))[0]
 
     @staticmethod
     def get_flashcards(existing_topics):
