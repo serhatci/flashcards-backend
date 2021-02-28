@@ -21,7 +21,7 @@ def camel_case(word):
     return (snake[0].lower() + snake[1:])
 
 
-def create_topics(existing_topics, new_topics):
+def compare_topics(existing_topics, new_topics):
     """Creates new topics of user for updating DB"""
     remaining = [item for item in existing_topics if item['title']
                  in new_topics]
