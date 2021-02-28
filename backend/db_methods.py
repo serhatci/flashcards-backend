@@ -169,7 +169,11 @@ class Database():
             existing_user_titles = Database.get_user_flashcard_titles(
                 new_data['uid'])
             new_user_titles = [camel_case(item) for item in new_data['topics']]
-            master_titles = Database.get_master_titles()
+            if (new_data['uid'] == os.environ.get('MASTER')):
+                master_titles = []
+            else:
+                master_titles = Database.get_master_titles()
+
             deleted_titles = list(set(existing_user_titles) -
                                   set(new_user_titles)-set(master_titles))
             added_titles = list(
