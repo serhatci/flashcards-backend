@@ -113,7 +113,17 @@ class Database():
         try:
             conn = Database.mongo.flashcards.users
             conn.delete_one(user)
+            Database.delete_all_flashcards_of_specific_user(user)
             return Response(status=200)
+        except Exception as err:
+            print(err)
+
+    @staticmethod
+    def delete_all_flashcards_of_specific_user(user):
+        try:
+            conn = Database.mongo.flashcards.flashcards
+            conn.delete_many(
+                {'ownerID': user['userID'], 'owner': {'$ne': 'master'}})
         except Exception as err:
             print(err)
 
