@@ -6,7 +6,8 @@ import os
 
 
 api = Blueprint('api', __name__, url_prefix='/api')
-cors = CORS(api, resources={r'/*': {'origins': 'http://localhost:3000'}})
+cors = CORS(api, resources={
+            r'/*': {'origins': 'https://master.d344jh1991oyh.amplifyapp.com'}})
 
 
 @api.route('/test')
