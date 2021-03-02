@@ -135,4 +135,4 @@ dmypy.json
 .vscode
 
 # ec2 file
-flashcards-backend.pem
+ubuntu-backend.pem
