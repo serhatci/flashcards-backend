@@ -23,3 +23,7 @@ def create_app():
     Database(app)  # creates database connection
 
     return app
+
+
+if __name__ == "__main__":
+    create_app()
