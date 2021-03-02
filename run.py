@@ -1,4 +1,4 @@
-from flask import Flask,
+from flask import Flask
 from backend.db_methods import Database
 from backend.settings import DevelopmentConfig, ProductionConfig, TestingConfig
 from backend.routes import api
